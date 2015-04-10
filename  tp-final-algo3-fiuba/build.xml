@@ -1,0 +1,77 @@
+<project name="Carmen Sandiego" default="run" basedir=".">
+	<description>
+		Algoritmos III-Tp2-Carmen Sandiego
+    </description>
+    <!-- Seteo las propiedades globales -->
+    <property name="src" location="src"/>
+    <property name="test"  location="test"/>
+    <property name="libs"  location="libs"/>
+    <property name="build" location="build"/>
+	
+	<path id="classpath">
+			<fileset dir="${libs}">
+				<include name="*.jar" />
+			</fileset>
+			<pathelement location="${build}" />
+	</path>
+
+  <target name="init">
+    <tstamp/>
+    <!-- Crear directorio de compilacion utilizado por ANT -->
+    <delete dir="build"/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${build}/lib"/>
+    <copydir src="${libs}" dest="${build}/lib" includes="**/*.jar " />
+    <copydir src="src/vistas/imagenes" dest="${build}/vistas/imagenes"/>
+	<copydir src="src/vistas/sonidos" dest="${build}/vistas/sonidos"/>
+	<copydir src="src/modelo/archivosConfiguracion" dest="${build}/modelo/archivosConfiguracion"/>
+  </target>
+
+  <target name="compile" depends="init" >
+    <!-- Compile the java code from ${src} into ${build}-->
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="true" debug="yes">
+		<classpath refid="classpath" />
+    </javac>
+  </target>
+   
+  <target name="compileTest" depends="compile">
+    <javac srcdir="${test}" destdir="${build}" includeantruntime="true" debug="yes">
+		<classpath refid="classpath"/>
+    </javac>
+  </target>
+  
+  <target name="JUnitTest" depends="compileTest">
+    <junit printsummary="yes" showoutput="true">
+		<classpath refid="classpath"/>
+        <batchtest>
+			<fileset dir="${build}/test">
+				<include name="**/*Test*" />
+			</fileset>
+		</batchtest>
+    	<formatter type="brief" usefile="false" />
+    </junit>
+  </target>
+  
+	<target name="empaquetar">
+		<jar destfile="${build}/dist/Carmen.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Main-Class" value="modelo.Aplicacion"/>
+				<attribute name="Class-Path" value="${build}"/> 
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="ejecutar.aplicacion" depends="empaquetar">
+		<java classname="modelo.Aplicacion" fork="true">
+			<classpath refid="classpath"/>
+			<classpath location="${build}/dist/Carmen.jar" />
+		</java>
+		</target>
+    
+
+  <target name="run" depends="JUnitTest">
+	  <echo message="Se abrira el juego"/>
+	  <antcall target="ejecutar.aplicacion"/>
+  </target>
+
+</project>
